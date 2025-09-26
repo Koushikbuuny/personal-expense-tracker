@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import "./App.css";
+import { useState, useEffect } from "react";
 import { Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -8,7 +7,11 @@ import {
   Legend,
 } from "chart.js";
 
-// Register chart elements
+import "./App.css";
+
+// Import your profile image
+import userImage from "./assets/myphoto.jpg";
+
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 // Define categories
@@ -25,9 +28,9 @@ interface Expense {
 export default function App() {
   // User profile
   const userName = "Bheematati Koushik";
-  const userPhoto = "https://i.pravatar.cc/60?img=12"; // Example avatar
+  const userPhoto = userImage;
 
-  // States
+  // State
   const [expenses, setExpenses] = useState<Expense[]>(() => {
     const saved = localStorage.getItem("expenses");
     return saved ? JSON.parse(saved) : [];
@@ -37,35 +40,19 @@ export default function App() {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState(categories[0]);
   const [filter, setFilter] = useState("All");
-  const [editId, setEditId] = useState<number | null>(null);
 
   // Persist in localStorage
   useEffect(() => {
     localStorage.setItem("expenses", JSON.stringify(expenses));
   }, [expenses]);
 
-  // Add or Edit expense
-  const handleAddOrEditExpense = () => {
+  // Add expense
+  const handleAddExpense = () => {
     if (!title || !amount) return;
-
-    if (editId !== null) {
-      // Edit existing
-      setExpenses((prev) =>
-        prev.map((e) =>
-          e.id === editId
-            ? { ...e, title, amount: Number(amount), category }
-            : e
-        )
-      );
-      setEditId(null);
-    } else {
-      // Add new
-      setExpenses([
-        ...expenses,
-        { id: Date.now(), title, amount: Number(amount), category },
-      ]);
-    }
-
+    setExpenses([
+      ...expenses,
+      { id: Date.now(), title, amount: Number(amount), category },
+    ]);
     setTitle("");
     setAmount("");
     setCategory(categories[0]);
@@ -73,15 +60,7 @@ export default function App() {
 
   // Delete expense
   const handleDelete = (id: number) => {
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
-  };
-
-  // Start editing expense
-  const handleEdit = (expense: Expense) => {
-    setTitle(expense.title);
-    setAmount(expense.amount.toString());
-    setCategory(expense.category);
-    setEditId(expense.id);
+    setExpenses(expenses.filter((e) => e.id !== id));
   };
 
   // Filtered expenses
@@ -138,7 +117,7 @@ export default function App() {
           />
           <input
             type="number"
-            placeholder="Amount (₹)"
+            placeholder="Amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
@@ -152,9 +131,7 @@ export default function App() {
               </option>
             ))}
           </select>
-          <button onClick={handleAddOrEditExpense}>
-            {editId !== null ? "Update Expense" : "Add Expense"}
-          </button>
+          <button onClick={handleAddExpense}>Add Expense</button>
         </div>
 
         {/* Filter */}
@@ -182,38 +159,12 @@ export default function App() {
         <div className="ExpenseList">
           {filteredExpenses.map((e) => (
             <div key={e.id} className="ExpenseItem">
-              <div>
+              <span>
                 {e.title} ({e.category})
-              </div>
-              <div>
-                ₹{e.amount.toLocaleString("en-IN")}
-                <button
-                  style={{
-                    marginLeft: "0.5rem",
-                    backgroundColor: "#f87171",
-                    border: "none",
-                    padding: "0.2rem 0.5rem",
-                    borderRadius: "0.3rem",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => handleDelete(e.id)}
-                >
-                  Delete
-                </button>
-                <button
-                  style={{
-                    marginLeft: "0.5rem",
-                    backgroundColor: "#60a5fa",
-                    border: "none",
-                    padding: "0.2rem 0.5rem",
-                    borderRadius: "0.3rem",
-                    cursor: "pointer",
-                    color: "white",
-                  }}
-                  onClick={() => handleEdit(e)}
-                >
-                  Edit
-                </button>
+              </span>
+              <span>₹{e.amount.toLocaleString("en-IN")}</span>
+              <div className="Buttons">
+                <button onClick={() => handleDelete(e.id)}>Delete</button>
               </div>
             </div>
           ))}
